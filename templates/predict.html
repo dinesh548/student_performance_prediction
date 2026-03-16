@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Predict — Student Performance Prediction{% endblock %}
+
+{% block content %}
+<section style="padding: 50px 0 80px;">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+
+        <!-- Header -->
+        <div class="text-center mb-5 fade-up">
+          <div class="hero-tag" style="margin-bottom:14px">🔮 Prediction Engine</div>
+          <h1 class="section-title" style="font-size:2rem">Student Performance Predictor</h1>
+          <p class="section-sub">Fill in the student's academic details to get a predicted final score.</p>
+        </div>
+
+        {% if error %}
+        <div class="alert-custom mb-4 fade-up">⚠️ {{ error }}</div>
+        {% endif %}
+
+        <div class="card-dark fade-up fade-up-1">
+          <form action="/result" method="POST" id="predictForm">
+
+            <div class="row g-4">
+
+              <!-- Study Hours -->
+              <div class="col-md-6">
+                <label class="form-label">Study Hours / Day</label>
+                <input type="number" name="study_hours" class="form-control"
+                       min="0" max="16" step="0.5" placeholder="e.g. 5" required>
+                <div class="input-hint">Hours spent studying daily <span class="range-badge">0–16</span></div>
+              </div>
+
+              <!-- Attendance -->
+              <div class="col-md-6">
+                <label class="form-label">Attendance (%)</label>
+                <input type="number" name="attendance" class="form-control"
+                       min="0" max="100" step="0.1" placeholder="e.g. 85" required>
+                <div class="input-hint">Class attendance percentage <span class="range-badge">0–100</span></div>
+              </div>
+
+              <!-- Assignments Completed -->
+              <div class="col-md-6">
+                <label class="form-label">Assignments Completed</label>
+                <input type="number" name="assignments_completed" class="form-control"
+                       min="0" max="10" step="1" placeholder="e.g. 8" required>
+                <div class="input-hint">Out of 10 total assignments <span class="range-badge">0–10</span></div>
+              </div>
+
+              <!-- Previous Grade -->
+              <div class="col-md-6">
+                <label class="form-label">Previous Grade</label>
+                <input type="number" name="previous_grade" class="form-control"
+                       min="0" max="100" step="0.1" placeholder="e.g. 72" required>
+                <div class="input-hint">Grade from previous semester <span class="range-badge">0–100</span></div>
+              </div>
+
+              <!-- Participation -->
+              <div class="col-md-6">
+                <label class="form-label">Class Participation Score</label>
+                <input type="number" name="participation" class="form-control"
+                       min="1" max="10" step="0.5" placeholder="e.g. 7" required>
+                <div class="input-hint">Engagement score out of 10 <span class="range-badge">1–10</span></div>
+              </div>
+
+              <!-- Sleep Hours -->
+              <div class="col-md-6">
+                <label class="form-label">Sleep Hours / Night</label>
+                <input type="number" name="sleep_hours" class="form-control"
+                       min="3" max="12" step="0.5" placeholder="e.g. 7" required>
+                <div class="input-hint">Average nightly sleep <span class="range-badge">3–12</span></div>
+              </div>
+
+              <!-- Internet Usage -->
+              <div class="col-12">
+                <label class="form-label">Recreational Internet Usage (hrs/day)</label>
+                <input type="number" name="internet_usage" class="form-control"
+                       min="0" max="12" step="0.5" placeholder="e.g. 3">
+                <div class="input-hint">Non-study screen time per day <span class="range-badge">0–12</span></div>
+              </div>
+
+            </div><!-- .row -->
+
+            <div class="divider"></div>
+
+            <div class="d-flex gap-3 flex-wrap">
+              <button type="submit" class="btn-accent" id="submitBtn">
+                <span id="btnText">🔮 Predict Performance</span>
+                <span id="btnLoader" style="display:none">⏳ Predicting…</span>
+              </button>
+              <button type="reset" class="btn-outline">↺ Reset</button>
+            </div>
+
+          </form>
+        </div>
+
+        <!-- Info note -->
+        <div class="card-dark mt-4 fade-up fade-up-3" style="padding:18px 22px">
+          <p style="font-size:.85rem;color:var(--muted);margin:0">
+            ℹ️ The prediction model was trained on <strong style="color:var(--text)">1,200 student records</strong>
+            using Linear Regression (R² = 0.8957). Predictions are estimates for educational purposes.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('predictForm').addEventListener('submit', () => {
+  document.getElementById('btnText').style.display = 'none';
+  document.getElementById('btnLoader').style.display = 'inline';
+  document.getElementById('submitBtn').disabled = true;
+});
+</script>
+{% endblock %}

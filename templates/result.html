@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Result — Student Performance Prediction{% endblock %}
+
+{% block content %}
+<section style="padding: 50px 0 80px;">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-9">
+
+        <!-- Header -->
+        <div class="text-center mb-5 fade-up">
+          <div class="hero-tag" style="margin-bottom:14px">✅ Prediction Complete</div>
+          <h1 class="section-title" style="font-size:2rem">Prediction Result</h1>
+        </div>
+
+        <!-- Score + Grade Row -->
+        <div class="row g-4 mb-4">
+
+          <!-- Score Ring -->
+          <div class="col-md-5">
+            <div class="card-dark text-center fade-up">
+              <p style="font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:18px">Predicted Final Score</p>
+              <div class="score-ring-wrap">
+                <svg viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="52" fill="none" stroke="#1E1E3F" stroke-width="10"/>
+                  <circle cx="60" cy="60" r="52" fill="none"
+                          stroke="url(#grad)" stroke-width="10"
+                          stroke-linecap="round"
+                          stroke-dasharray="{{ (score / 100 * 326.73) | round(2) }} 326.73"/>
+                  <defs>
+                    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#6366F1"/>
+                      <stop offset="100%" stop-color="#818CF8"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div class="score-ring-val">
+                  <span class="num">{{ score }}</span>
+                  <span class="lbl">/ 100</span>
+                </div>
+              </div>
+              <div class="grade-badge">{{ grade }}</div>
+              <div style="font-size:1rem;font-weight:600;color:var(--text);margin-bottom:6px">{{ label }}</div>
+              <div style="font-size:.85rem;color:var(--muted)">Better than <strong style="color:var(--accent2)">{{ percentile }}%</strong> of dataset</div>
+            </div>
+          </div>
+
+          <!-- Input Summary -->
+          <div class="col-md-7">
+            <div class="card-dark h-100 fade-up fade-up-1">
+              <h2 class="section-title mb-3" style="font-size:1.1rem">Input Summary</h2>
+
+              {% set field_map = [
+                ('📚','Study Hours',       inputs.study_hours,           16),
+                ('🏫','Attendance',         inputs.attendance,            100),
+                ('📝','Assignments',        inputs.assignments_completed,  10),
+                ('📋','Previous Grade',     inputs.previous_grade,        100),
+                ('🙋','Participation',      inputs.participation,          10),
+                ('😴','Sleep Hours',        inputs.sleep_hours,            12),
+                ('📱','Internet Usage',     inputs.internet_usage,         12),
+              ] %}
+
+              {% for icon, label_txt, val, max_val in field_map %}
+              <div class="prog-row">
+                <div class="prog-label">
+                  <span>{{ icon }} {{ label_txt }}</span>
+                  <span class="text-accent2">{{ val }}</span>
+                </div>
+                <div class="prog-track">
+                  <div class="prog-fill" style="width: {{ [(val / max_val * 100), 100]|min }}%"></div>
+                </div>
+              </div>
+              {% endfor %}
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="card-dark mb-4 fade-up fade-up-2">
+          <h2 class="section-title mb-3" style="font-size:1.15rem">💡 Improvement Recommendations</h2>
+          {% for tip in tips %}
+          <div class="tip-item">{{ tip }}</div>
+          {% endfor %}
+        </div>
+
+        <!-- Performance Band -->
+        <div class="card-dark mb-4 fade-up fade-up-3" style="padding:22px 24px">
+          <h2 class="section-title mb-3" style="font-size:1.1rem">Performance Bands</h2>
+          <div class="row g-2">
+            {% set bands = [
+              ('A+','90–100','Outstanding','#10B981'),
+              ('A','80–89','Excellent','#6366F1'),
+              ('B','70–79','Good','#818CF8'),
+              ('C','60–69','Average','#F59E0B'),
+              ('D','50–59','Below Avg','#F97316'),
+              ('F','< 50','Fail','#EF4444'),
+            ] %}
+            {% for g, rng, desc, col in bands %}
+            <div class="col-6 col-md-2">
+              <div style="background:rgba(0,0,0,.25);border:1px solid {{ col }}33;border-radius:10px;padding:10px;text-align:center;
+                          {% if grade == g %}box-shadow:0 0 0 2px {{ col }};{% endif %}">
+                <div style="font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:{{ col }}">{{ g }}</div>
+                <div style="font-size:.72rem;color:#94A3B8">{{ rng }}</div>
+                <div style="font-size:.75rem;color:#94A3B8">{{ desc }}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-3 flex-wrap fade-up fade-up-4">
+          <a href="/predict" class="btn-accent">🔄 Predict Again</a>
+          <a href="/dashboard" class="btn-outline">📊 View Dashboard</a>
+          <a href="/" class="btn-outline">🏠 Home</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Animate progress bars on load
+window.addEventListener('load', () => {
+  document.querySelectorAll('.prog-fill').forEach(bar => {
+    const w = bar.style.width;
+    bar.style.width = '0%';
+    setTimeout(() => { bar.style.width = w; }, 200);
+  });
+});
+</script>
+{% endblock %}

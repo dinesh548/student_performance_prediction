@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Student Performance Prediction{% endblock %}
+
+{% block content %}
+<section style="padding: 50px 0 80px;">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="mb-5 fade-up">
+      <div class="hero-tag" style="margin-bottom:14px">📊 Analytics Dashboard</div>
+      <h1 class="section-title" style="font-size:2rem">Exploratory Data Analysis</h1>
+      <p class="section-sub">Insights from {{ overview.rows }} student records</p>
+    </div>
+
+    <!-- Overview chips -->
+    <div class="d-flex flex-wrap gap-2 mb-5 fade-up fade-up-1">
+      <span class="chip">Rows <span class="chip-val ms-1">{{ overview.rows }}</span></span>
+      <span class="chip">Columns <span class="chip-val ms-1">{{ overview.columns }}</span></span>
+      <span class="chip">Missing (raw) <span class="chip-val ms-1">{{ overview.missing }}</span></span>
+      <span class="chip">Mean Score <span class="chip-val ms-1">{{ overview.avg_score }}</span></span>
+      <span class="chip">Std Dev <span class="chip-val ms-1">{{ overview.std_score }}</span></span>
+    </div>
+
+    <!-- EDA Graphs Row 1 -->
+    <div class="row g-4 mb-4 fade-up fade-up-2">
+      <div class="col-md-6">
+        <div class="card-dark">
+          <img src="{{ url_for('static', filename='images/study_vs_score.png') }}" class="graph-img" alt="Study Hours vs Score">
+          <p class="graph-caption">Figure 1 — Study Hours vs Final Score with trend line</p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card-dark">
+          <img src="{{ url_for('static', filename='images/attendance_vs_score.png') }}" class="graph-img" alt="Attendance vs Score">
+          <p class="graph-caption">Figure 2 — Attendance Range vs Average Performance</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- EDA Graphs Row 2 -->
+    <div class="row g-4 mb-4 fade-up fade-up-3">
+      <div class="col-md-6">
+        <div class="card-dark">
+          <img src="{{ url_for('static', filename='images/prev_grade_vs_score.png') }}" class="graph-img" alt="Previous Grade vs Score">
+          <p class="graph-caption">Figure 3 — Previous Grade vs Final Score (hexbin density)</p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card-dark">
+          <img src="{{ url_for('static', filename='images/heatmap.png') }}" class="graph-img" alt="Correlation Heatmap">
+          <p class="graph-caption">Figure 4 — Feature Correlation Heatmap</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature Importance -->
+    <div class="card-dark mb-5 fade-up fade-up-4">
+      <h2 class="section-title mb-1" style="font-size:1.15rem">Feature Importance</h2>
+      <p class="section-sub" style="margin-bottom:18px">Random Forest model — contribution of each feature</p>
+      <img src="{{ url_for('static', filename='images/feature_importance.png') }}" class="graph-img" alt="Feature Importance" style="max-height:360px;object-fit:contain">
+      <p class="graph-caption">Figure 5 — Feature Importance (Random Forest)</p>
+    </div>
+
+    <!-- Grade Distribution -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-6">
+        <div class="card-dark h-100 fade-up">
+          <h2 class="section-title mb-1" style="font-size:1.15rem">Grade Distribution</h2>
+          <p class="section-sub" style="margin-bottom:20px">Student count per grade band</p>
+          <canvas id="gradeChart" height="220"></canvas>
+        </div>
+      </div>
+
+      <!-- Model Performance Table -->
+      <div class="col-lg-6">
+        <div class="card-dark h-100 fade-up fade-up-2">
+          <h2 class="section-title mb-1" style="font-size:1.15rem">Model Performance</h2>
+          <p class="section-sub" style="margin-bottom:20px">Evaluated on 20% holdout test set</p>
+          <table class="metrics-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>R² Score</th>
+                <th>MAE</th>
+                <th>MSE</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for name, m in metrics.items() %}
+              <tr>
+                <td>
+                  {{ name }}
+                  {% if m.R2 == metrics.values()|map(attribute='R2')|max %}
+                  <span class="badge-best ms-1">Best</span>
+                  {% endif %}
+                </td>
+                <td class="text-accent2">{{ "%.4f"|format(m.R2) }}</td>
+                <td>{{ "%.2f"|format(m.MAE) }}</td>
+                <td>{{ "%.2f"|format(m.MSE) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="divider"></div>
+          <p style="font-size:.82rem;color:var(--muted)">
+            ✅ <strong style="color:var(--text)">Linear Regression</strong> achieves the highest R² (0.8957),
+            explaining ~89.6% of variance in final scores.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const gradeData = {{ grade_dist | safe }};
+const labels = Object.keys(gradeData);
+const values = Object.values(gradeData);
+const colors = ['#EF4444','#F97316','#F59E0B','#10B981','#6366F1','#818CF8'];
+
+new Chart(document.getElementById('gradeChart'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [{
+      label: 'Students',
+      data: values,
+      backgroundColor: colors.slice(0, labels.length),
+      borderRadius: 7,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#13132A',
+        borderColor: '#1E1E3F',
+        borderWidth: 1,
+        titleColor: '#E2E8F0',
+        bodyColor: '#94A3B8',
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: '#1E1E3F' },
+        ticks: { color: '#94A3B8', font: { size: 11 } }
+      },
+      y: {
+        grid: { color: '#1E1E3F' },
+        ticks: { color: '#94A3B8', font: { size: 11 } }
+      }
+    }
+  }
+});
+</script>
+{% endblock %}
