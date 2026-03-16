@@ -16,13 +16,6 @@ env/
 dist/
 build/
 
-# Model artifacts and large binary files
-model.pkl
-*.pkl
-
-# Dataset (uncomment if you don't want to push the CSV)
-# student_performance.csv
-
 # Logs and system files
 *.log
 .DS_Store
